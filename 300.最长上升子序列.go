@@ -34,28 +34,28 @@
 
 // @lc code=start
 func lengthOfLIS(nums []int) int {
-	return recursive(nums)
+	return binarySearch(nums)
 }
 
 func binarySearch(nums []int) int {
 	dp := []int{}
-	for _, num := range nums{
-		if len(dp) == 0 || dp[len(dp)-1] < num{
+	for _, num := range nums {
+		if len(dp) == 0 || dp[len(dp)-1] < num {
 			// 如果dp为空， 或者dp的最后一个元素比当前元素小的话， 则将当前元素添加到dp的后面
 			dp = append(dp, num)
-		}else{
+		} else {
 			// 利用二分查找， 找到dp中第一个比dp小的元素进行替换
 			left, right := 0, len(dp)-1
 			loc := right
-			for left <= right{
-				mid := (right-left)/2+left
-				if dp[mid] > num{
+			for left <= right {
+				mid := (right-left)/2 + left
+				if dp[mid] > num {
 					loc = mid
 					right = mid -1
-				}else if dp[mid] == num{
+				} else if dp[mid] == num {
 					loc = mid
 					right = mid -1
-				}else if dp[mid] < num{
+				} else if dp[mid] < num {
 					left = mid + 1
 				}
 			}
@@ -66,17 +66,15 @@ func binarySearch(nums []int) int {
 	return len(dp)
 }
 
-
-
 func recursive(nums []int) int {
 	n := len(nums)
 	dp := []int{}
 	ans := 0
-	for i:=0; i<n; i++{
+	for i := 0; i < n; i++ {
 		dp = append(dp, 1)
 
-		for j:=0; j<i; j++{
-			if nums[i] > nums[j]{
+		for j := 0; j < i; j++ {
+			if nums[i] > nums[j] {
 				dp[i] = max(dp[i], dp[j]+1)
 			}
 		}
@@ -88,8 +86,8 @@ func recursive(nums []int) int {
 	return ans
 }
 
-func max(x, y int ) int {
-	if x > y{
+func max(x, y int) int {
+	if x > y {
 		return x
 	}
 	return y
