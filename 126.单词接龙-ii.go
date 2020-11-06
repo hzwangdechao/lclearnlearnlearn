@@ -59,63 +59,89 @@
  */
 
 // @lc code=start
+
 func findLadders(beginWord string, endWord string, wordList []string) [][]string {
-	if beginWord == "" || endWord == "" || len(wordList) == 0 || !strContains(endWord, wordList) {
+	// 用字符串在wordList中的位置来表示
+	ids := make(map[string]int)
+	for i, word := range wordList {
+		ids[word] = i
+	}
+	// 将beginWord也添加到wordList中
+	if _, ok := ids[beginWord]; !ok {
+		wordList = append(wordList, beginWord)
+		ids[beginWord] = len(wordList) - 1
+	}
+	// 如果endWord没有在wordList中的话直接返回
+	if _, ok := ids[endWord]; !ok {
 		return [][]string{}
 	}
-
-	var (
-		res     [][]string
-		L       = len(beginWord)
-		m       = make(map[string][]string)
-		visited = make(map[string]bool)
-		Q       = make([][]interface{}, 0)
-	)
-
-	for _, word := range wordList {
-		for i := 0; i < L; i++ {
-			key := word[:i] + "*" + word[i+1:]
-			m[key] = append(m[key], word)
+	n := len(wordList)
+	edges := make([][]int, n)
+	// 计算字符串相邻的字符串， 用字符串在wordList中索引表示
+	for i := 0; i < n; i++ {
+		for j := i + 1; j < n; j++ {
+			if transformCheck(wordList[i], wordList[j]) {
+				edges[i] = append(edges[i], j)
+				edges[j] = append(edges[j], i)
+			}
 		}
 	}
-	Q = append(Q, []interface{}{beginWord, []string{beginWord}})
-	visited[beginWord] = true
 
-	for len(Q) > 0 {
-		cur := Q[0]
-		Q = Q[1:]
+	cost := make([]int, n) // cost[i]表示从beginWord转换到wordList[i]所需要转换的次数
+	for i := 0; i < n; i++ {
+		cost[i] = math.MaxInt32
+	}
+	cost[ids[beginWord]] = 0
 
-		curWord := cur[0].(string)
-		curList := cur[1].([]string)
+	paths := [][]int{} /// 存储转换的路径
+	Q := make([][]int, 0)
+	Q = append(Q, []int{ids[beginWord]}) // 队列中存放的是beginWord --> endWord的变化路径
 
-		for i := 0; i < L; i++ {
-			key := curWord[:i] + "*" + curWord[i+1:]
+	for i := 0; i < len(Q); i++ {
+		now := Q[i]
 
-			if words, ok := m[key]; ok {
-				for _, word := range words {
-					if word == endWord{
-						res = append(res, append(curList, word))
-						break
-					}
-					if !visited[word]{
-						visited[word] = true
-
-						Q = append(Q, []interface{}{word, append(curList, word)})
-					}
+		last := now[len(now)-1] // 遍历的终止条件是 last==ids[endWord] , 说明已经从beginWord转换到了endWord,
+		if last == ids[endWord] {
+			tmp := make([]int, len(now))
+			copy(tmp, now)
+			paths = append(paths, tmp)
+		} else {
+			// 对最后一个转换的字符串进行处理
+			for _, to := range edges[last] {
+				if cost[last]+1 <= cost[to] {
+					cost[to] = cost[last] + 1
+					tmp := make([]int, len(now))
+					copy(tmp, now)
+					tmp = append(tmp, to)
+					Q = append(Q, tmp)
 				}
+
 			}
-			delete(m, key)
 		}
+
+	}
+	var res [][]string
+	for _, path := range paths {
+		tmp := make([]string, 0)
+		for _, to := range path {
+			tmp = append(tmp, wordList[to])
+		}
+		res = append(res, tmp)
 	}
 
 	return res
 }
-func strContains(word string, wordList []string) bool {
-	for _, w := range wordList {
-		if w == word {
-			return true
+
+// 判断两个字符串是否可以通过改变一个字符后变成相同的字符串
+func transformCheck(word1 string, word2 string) bool {
+	for i := 0; i < len(word1); i++ {
+		if word1[i] != word2[i] {
+			// true [dot dit] [loc log]
+			// false [dob dac]
+			return word1[i+1:] == word2[i+1:]
 		}
 	}
+	// false [abc abc]
 	return false
 }
 
