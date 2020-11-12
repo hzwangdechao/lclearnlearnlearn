@@ -29,31 +29,32 @@
  */
 
 // @lc code=start
-
 func partition(s string) [][]string {
-	res := make([][]string, 0)
-	path := make([]string, 0)
-	backTrack(path, &res, 0, s)
-	return res
-}
+	// 回溯方法分割回文串
+	var (
+		traceBack func(path []string, start int)
+		res       [][]string
+	)
+	traceBack = func(path []string, start int) {
+		if start == len(s) {
+			tmp := make([]string, len(path))
+			copy(tmp, path)
+			res = append(res, tmp)
+			return
+		}
 
-// 递归回溯算法
-func backTrack(path []string, res *[][]string, index int, s string) {
-	// 如果索引和s的长度相等的话， 说明找到了符合条件的回文串列表
-	if index == len(s) {
-		tmp := make([]string, len(path))
-		copy(tmp, path)
-		*res = append(*res, tmp)
-		return
-	}
-
-	for i := index; i < len(s); i++ {
-		if judgePalindrome(s[index : i+1]) {
-			path = append(path, s[index:i+1])
-			backTrack(path, res, i+1, s)
-			path = path[:len(path)-1]
+		for i := start; i < len(s); i++ {
+			if judgePalindrome(s[start : i+1]) {
+				path = append(path, s[start:i+1])
+				traceBack(path, i+1)
+				path = path[:len(path)-1]
+			}
 		}
 	}
+
+	traceBack([]string{}, 0)
+	return res
+
 }
 
 // 判断字符串是否是回文串
